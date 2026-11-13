@@ -38,6 +38,9 @@ class State:
     saved_trajectories: list[Trajectory] = field(default_factory=list)
     message: str = ""
 
+def format_sig_figs(number: float) -> str:
+    """Formats a number to three significant figures."""
+    return format(number, ".3g")
 
 def calculate_values(
     velocity: float,
@@ -197,27 +200,29 @@ def input_page(state: State) -> Page:
 
     return Page(state, [
         Div(
-            Header("ROCKET CALCULATOR"),
-            Text("Enter your rocket information below.")
-        ),
-
-        Div(
             Text("Initial Velocity (meters per second):"),
             TextBox("velocity", state.velocity),
+            Text("Enter a decimal number (float), such as 30.0."),
+            Text("Do not enter words or units such as m/s."),
             style_margin="15px"
         ),
 
         Div(
             Text("Starting Height (meters):"),
             TextBox("starting_height", state.starting_height),
+            Text("Enter a decimal number (float), such as 2.0."),
+            Text("Do not enter words or units such as meters."),
             style_margin="15px"
         ),
 
         Div(
             Text("Launch Angle (degrees):"),
             TextBox("launch_angle", state.launch_angle),
+            Text("Enter a decimal number (float), such as 45.0."),
+            Text("Do not enter words or units such as degrees."),
             style_margin="15px"
         ),
+
 
         Div(
             Button("Calculate Trajectory", "calculate_trajectory"),
@@ -320,22 +325,22 @@ def results_page(state: State) -> Page:
         Text(state.message),
 
         Text("Initial Velocity: "
-             + str(result.velocity) + " m/s"),
+             + format_sig_figs(result.velocity) + " m/s"),
 
         Text("Starting Height: "
-             + str(result.starting_height) + " m"),
+             + format_sig_figs(result.starting_height) + " m"),
 
         Text("Launch Angle: "
-             + str(result.launch_angle) + " degrees"),
+             + format_sig_figs(result.launch_angle) + " degrees"),
 
         Text("Maximum Height: "
-             + str(round(result.maximum_height, 2)) + " m"),
+             + format_sig_figs(result.maximum_height) + " m"),
 
         Text("Flight Time: "
-             + str(round(result.flight_time, 2)) + " seconds"),
+             + format_sig_figs(result.flight_time) + " seconds"),
 
         Text("Horizontal Distance: "
-             + str(round(result.horizontal_distance, 2)) + " m"),
+             + format_sig_figs(result.horizontal_distance) + " m"),
 
         Text("ROCKET TRAJECTORY GRAPH"),
 
@@ -347,54 +352,88 @@ def results_page(state: State) -> Page:
     ])
 
 
+
 @route
 def history_page(state: State) -> Page:
     """Displays the user's previous rocket calculations."""
 
     history = [
-        Text("CALCULATION HISTORY"),
-        Text("Here are your previously calculated trajectories.")
+        Header("CALCULATION HISTORY"),
+        Text("Review your previously calculated rocket trajectories.")
     ]
 
     # Check whether the user has saved calculations.
     if len(state.saved_trajectories) == 0:
-        history.append(Text("No saved calculations yet."))
+        history.append(
+            Div(
+                Text("No saved calculations yet."),
+                style_background_color="#f0f4f8",
+                style_padding="20px",
+                style_border_radius="10px",
+                style_margin="15px"
+            )
+        )
 
     else:
         # Display each saved rocket calculation.
         for number, trajectory in enumerate(
             state.saved_trajectories
         ):
-            history.append(Text(
-                "Calculation " + str(number + 1)
-            ))
+            history.append(
+                Div(
+                    Header("Calculation " + str(number + 1), 3),
 
-            history.append(Text(
-                "Velocity: " + str(trajectory.velocity) + " m/s"
-            ))
+                    Text(
+                        "Initial Velocity: "
+                        + format_sig_figs(trajectory.velocity)
+                        + " m/s"
+                    ),
 
-            history.append(Text(
-                "Launch Angle: "
-                + str(trajectory.launch_angle) + " degrees"
-            ))
+                    Text(
+                        "Starting Height: "
+                        + format_sig_figs(trajectory.starting_height)
+                        + " m"
+                    ),
 
-            history.append(Text(
-                "Maximum Height: "
-                + str(round(trajectory.maximum_height, 2)) + " m"
-            ))
+                    Text(
+                        "Launch Angle: "
+                        + format_sig_figs(trajectory.launch_angle)
+                        + " degrees"
+                    ),
 
-            history.append(Text(
-                "Horizontal Distance: "
-                + str(round(trajectory.horizontal_distance, 2))
-                + " m"
-            ))
+                    Text(
+                        "Maximum Height: "
+                        + format_sig_figs(trajectory.maximum_height)
+                        + " m"
+                    ),
 
-    history.append(Button("Calculate Another Rocket", "input_page"))
+                    Text(
+                        "Flight Time: "
+                        + format_sig_figs(trajectory.flight_time)
+                        + " seconds"
+                    ),
+
+                    Text(
+                        "Horizontal Distance: "
+                        + format_sig_figs(trajectory.horizontal_distance)
+                        + " m"
+                    ),
+
+                    style_border="2px solid #4141a0",
+                    style_border_radius="12px",
+                    style_padding="18px",
+                    style_margin="15px",
+                    style_background_color="#f3f4fa"
+                )
+            )
+
+    history.append(
+        Button("Calculate Another Rocket", "input_page")
+    )
     history.append(Button("Clear History", "clear_history"))
     history.append(Button("Return Home", "index"))
 
     return Page(state, history)
-
 
 @route
 def clear_history(state: State) -> Page:
